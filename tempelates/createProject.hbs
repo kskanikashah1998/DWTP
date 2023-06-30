@@ -1,0 +1,223 @@
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" type="text/css" href="css/create.css">
+  </head>
+  <body>
+    <form id="locationForm" action="/save" method="post" >
+    <h1>Select any location and fill in some parameters to create an electricity report.</h1>
+  
+    <div class="container">
+      <div id="map"></div>
+  
+      <div class="inputs">
+        <div class="input-group">
+          
+          <div>
+            <label for="product">Product:</label>
+            <select id="product" onchange="updatePowerPeak()" class="cursor-pointer"> 
+              <option value="Hanwha Q-Cells" selected >Hanwha Q-Cells</option>
+              <option value="FirstSolar">FirstSolar</option>
+              <option value="JinkoSolar">JinkoSolar</option>
+            </select>
+          </div>
+          <div>
+            <label for="powerpeak">Power Peak:</label>
+            <input type="text" id="powerpeak" readonly>
+          </div>
+        </div>
+        <div class="input-group">
+          <div>
+            <label for="latitude">Latitude:</label>
+            <input type="text" id="latitude" readonly>
+          </div>
+          <div>
+            <label for="longitude">Longitude:</label>
+            <input type="text" id="longitude" readonly>
+          </div>
+          
+        </div>
+        <p>(Click on any location on the map to get latitude and longitude)</p>
+        <div class="input-group">
+          <div>
+            <label for="area">Area:</label>
+            <input type="number" id="area"  placeholder="Enter Area value" name="area" required>
+          </div>
+          <div>
+            <label for="orientation">Orientation:</label>
+            <input type="number" id="orientation" placeholder="Enter orientation value">
+          </div>
+          <div>
+            <label for="inclination">Inclination:</label>
+            <input type="number" id="inclination" placeholder="Enter inclination value">
+          </div>
+          <div><label for="projectName">Project Name:</label>
+            <input type="text" id="projectName" placeholder="Enter project name">
+          </div>
+          
+        </div>
+        </div>
+        <div>
+          
+        <div class="input-group">
+          <button class="back-button" onclick="goBack()"> Go Back</button>
+        </div>
+        <div class="input-group">
+          <button type="submit" id="submitBtn">Save and Generate Report</button>
+        </div>
+        <div id="message-card" class="message-card" style="display: none;">
+        Project Saved and report was sent to your email!
+        </div>
+      </div>
+    </div>
+    </form>
+    <script>
+      function updatePowerPeak() {
+    var productSelect = document.getElementById("product");
+    var powerPeakInput = document.getElementById("powerpeak");
+    var selectedProduct = productSelect.value;
+
+    if (selectedProduct === "Hanwha Q-Cells") {
+      powerPeakInput.value = "300 W";
+    } else if (selectedProduct === "FirstSolar") {
+      powerPeakInput.value = "250 W";
+    } else if (selectedProduct === "JinkoSolar") {
+      powerPeakInput.value = "350 W";
+    } 
+    else {
+      powerPeakInput.value = ""; // Clear the input if no product is selected
+   }
+  }
+  updatePowerPeak();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const form = document.getElementById('locationForm'); // Update the form selector
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    // Perform additional actions here
+    console.log('Form submitted!');
+  });
+
+  submitBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+
+     console.log("Are you getting")
+        // Get the form values
+        const area = document.getElementById('area').value;
+        const orientation = document.getElementById('orientation').value;
+        const inclination = document.getElementById('inclination').value;
+        const product = document.getElementById('product').value;
+        const latitude = document.getElementById('latitude').value;
+        const longitude = document.getElementById('longitude').value;
+        const projectName = document.getElementById('projectName').value;
+        const powerpeak = document.getElementById('powerpeak').value;
+
+        // Create the request body
+        const requestBody = {
+          area,
+          orientation,
+          inclination,
+          product,
+          latitude,
+          longitude,
+          projectName,
+          powerpeak
+        };
+
+
+        console.log(requestBody)
+
+        // Send the POST request to the server
+        fetch('/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        })
+          .then((response) => {
+            if (response.ok) {
+              console.log('Location saved successfully');
+               alert('Saved'); // Show pop-up message
+                location.reload(); // Clear/reset the webpage
+               
+              // Reset the form or perform any desired actions
+            } else {
+              console.error('Failed to save location');
+            }
+          })
+          .catch((error) => {
+            console.error('Error saving location:', error);
+          });
+  });
+
+
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script >
+      var map = L.map('map').setView([51.505, -0.09], 13);
+
+       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+       maxZoom: 18,
+       }).addTo(map);
+
+      var marker;
+
+      map.on('click', function(e) {
+        if (marker) {
+          map.removeLayer(marker);
+        }
+
+        marker = L.marker(e.latlng).addTo(map);
+
+        document.getElementById('latitude').value = e.latlng.lat.toFixed(6);
+        document.getElementById('longitude').value = e.latlng.lng.toFixed(6);
+      });
+      // Fetch the locations from the server
+      fetch('/location', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }        
+        })
+      .then(response => response.json())
+      .then(locations => {
+      // Create markers for each location
+        locations.forEach(location => {
+          console.log("GOT DATA")
+          var marker = L.marker([location.latitude, location.longitude]).addTo(map);
+          marker.setIcon(L.divIcon({
+          className: 'custom-marker-icon'
+          }));
+        });
+      })
+      .catch(error => console.error('Error fetching locations:', error));
+    </script>
+    <script>
+      function goBack() {
+        window.history.back();
+      }
+    </script>
+  </body>
+  </html>
+  

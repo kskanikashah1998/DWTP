@@ -1,16 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="css/login.css">
+  <title>Webpage Design</title>
+  <link rel="stylesheet" type="text/css" href="css/home.css">
 </head>
 <body>
-
-    <h1>Home</h1>
-    <h2>hello {{naming}}</h2>
+  <div class="navbar">
+    <div class="navbar-text">Profile</div>
+  </div>
+  
+  <div class="main-content">
+    <h1 class="main-text">Welcome!</h1>
+    <p class="sub-text">Energy Insights Made Easy: Explore Your Electricity Usage with Location-based Reports</p>
     
+    <div class="button-container">
+    <button class="transparent-button" onclick="redirectToCreateProject()">Create Project</button>
+    <button class="transparent-button" onclick="redirectToViewProjects()">View Projects</button>
+    </div>
+  </div>
+  <script> function redirectToCreateProject() {
+   window.location.href = "/createProject";
+   }
+
+   function redirectToViewProjects() {
+   window.location.href = "/viewProjects";
+   }
+   </script>
+  
+
 </body>
 </html>

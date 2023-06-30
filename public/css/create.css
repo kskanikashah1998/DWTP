@@ -1,0 +1,144 @@
+/* Body background color */
+body {
+    background-color: #eceaff;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Container */
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    margin-top: -20px;
+  }
+  
+  /* Inputs container */
+  .inputs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top:  -24px;
+  }
+  
+  /* Input group */
+  .input-group {
+    display: flex;
+    justify-content: center; 
+    margin-bottom: 10px;
+  }
+  
+  /* Individual input box */
+  .inputs div {
+    margin: 5px;
+  }
+  
+  /* Label styling */
+  label {
+    display: block;
+    font-weight: bold;
+  }
+  
+  /* Input box styling */
+  input[type="number"],
+  input[type="text"],
+  select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 150px;
+    background-color: #fff;
+  }
+  
+  /* Placeholder text styling */
+  input[type="number"]::placeholder,
+  input[type="text"]::placeholder {
+    color: #aaa;
+  }
+  
+
+  
+  /* Hover effect for the submit button */
+  button:hover {
+    background-color: #555;
+  }
+  
+  /* Map container */
+  #map {
+    height: 300px;
+    width: 100%;
+    margin-bottom: 20px;
+    margin-top: -15px;
+  }
+  
+  /* Headline styling */
+  h1 {
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+    font-family: "Arial", sans-serif;
+  }
+  /* Back button styling */
+.back-button {
+  position: absolute;
+  top: 7px;
+  left: 20px;
+  font-size: 13px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+  font-family: "Arial", sans-serif;
+}
+
+/* Hover effect for the back button */
+.back-button:hover {
+  background-color: #555;
+}
+
+.back-button::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-top: 2px solid  #fff;
+  border-left: 2px solid  #fff;
+  transform: rotate(-45deg);
+}
+
+  /* Submit button styling */
+  button {
+    padding: 10px 20px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  #projectName {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 150px;
+    background-color: #fff;
+    flex-shrink: 0; /* Prevent input box from shrinking */
+  }
+    
+
+  /* Define custom marker styles */
+  .custom-marker-icon {
+    background-color: red;
+  }
+  .message-card {
+    background-color: #e6f7ff;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #1890ff;
+    border-radius: 4px;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }

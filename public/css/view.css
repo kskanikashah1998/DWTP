@@ -1,0 +1,98 @@
+/* Body background color */
+body {
+  background-color: #eceaff;
+  margin: 0;
+  padding: 0;
+}
+
+/* Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Project list */
+.project-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Individual project entry */
+.project {
+  width: 300px;
+  background-color: #ffffff;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 10px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.project:hover {
+  transform: translateY(-5px);
+}
+
+/* Project title */
+.project h3 {
+  color: #333333;
+  font-size: 18px;
+  font-family: 'Arial', sans-serif;
+  margin-bottom: 10px;
+}
+
+/* Project description */
+.project p {
+  color: #666666;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 15px;
+}
+
+/* Actions (update/delete buttons) */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Update button */
+.update {
+  padding: 5px 10px;
+  background-color: #2196f3;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+  font-size: 14px;
+}
+
+/* Delete button */
+.delete {
+  padding: 5px 10px;
+  background-color: #f44336;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Hover effects for buttons */
+.update:hover,
+.delete:hover {
+  opacity: 0.8;
+}
+
+/* Heading */
+.heading {
+  text-align: center;
+  font-family: 'Arial', sans-serif;
+  font-size: 24px;
+  color: #333333;
+  margin-bottom: 20px;
+}

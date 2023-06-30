@@ -1,10 +1,10 @@
 const mongoose=require("mongoose")
-
-mongoose.connect("mongodb://localhost:27017/LoginFormPractice")
-.then(()=>{
-    console.log('mongoose connected');
-})
-.catch((e)=>{
-    console.log('failed');
-})
-
+const connect = async () => {
+    try {
+      await mongoose.connect("mongodb://127.0.0.1:27017/Loginform", { useNewUrlParser: true, useUnifiedTopology: true });
+      console.log('Connected to MongoDB');
+    } catch (error) {
+      console.error('Error connecting to MongoDB:', error);
+    }
+  };
+  module.exports = connect;

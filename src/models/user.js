@@ -9,8 +9,9 @@ const logInSchema=new mongoose.Schema({
         type:String,
         required:true
     }
+    
 })
 
-const LogInCollection=new mongoose.model('LogInCollection',logInSchema)
+const LogInData=new mongoose.model('LogInData',logInSchema)
 
-module.exports=LogInCollection
+module.exports=LogInData

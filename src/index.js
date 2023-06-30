@@ -1,15 +1,21 @@
 const express = require("express")
 const path = require("path")
-const app = express()
+const app = express();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const bodyParser = require('body-parser');
 const axios = require('axios');
 // const hbs = require("hbs")
-const LogInCollection = require("./mongo")
-const port = process.env.PORT || 3001
+const LogInData = require("./models/user")
+const SignupData = require ("./models/register")
+const Location = require ("./models/locationschema")
+const connect = require('./mongo.js');
+const generateReport = require("./power.js")
+const cookieParser = require('cookie-parser');
+const { Console } = require("console");
+const port = process.env.PORT || 3000
 
 app.use(express.json())
-
 app.use(express.urlencoded({ extended: false }))
 
 const tempelatePath = path.join(__dirname, '../tempelates')
@@ -19,226 +25,180 @@ console.log(publicPath);
 app.set('view engine', 'hbs')
 app.set('views', tempelatePath)
 
-async function getCoordinates(city) {
-    try {
-      const response = await axios.get(
-        `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=afe7d4236e66ce7c963cc9364da76305`
-      );
-  
-      if (response.data.length === 0) {
-        throw new Error('City not found');
-      }
-  
-      const { lat, lon } = response.data[0];
-      return { latitude: lat, longitude: lon };
-    } catch (error) {
-      throw new Error('Error retrieving coordinates');
-    }
-  }
-  async function getWeatherData(latitude, longitude) {
-    try {
-      const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/onecall/timemachine?lat=${latitude}&lon=${longitude}&dt={timestamp}&appid=YOUR_API_KEY`
-      );
-  
-      const weatherData = response.data;
-  
-      // Extract and process the weather data for each day
-      const processedData = weatherData.hourly.map((hour) => {
-        return {
-          timestamp: hour.dt,
-          temperature: hour.temp,
-          // Add more relevant weather data fields as needed
-        };
-      });
-  
-      return processedData;
-    } catch (error) {
-      throw new Error('Error retrieving weather data');
-    }
-  }
-
-  
-  const city = 'YourCityName';
-
-  getCoordinates(city)
-    .then((coordinates) => {
-      return getWeatherData(coordinates.latitude, coordinates.longitude);
-    })
-    .then((weatherData) => {
-      console.log('Weather data for the last 30 days:', weatherData);
-    })
-    .catch((error) => {
-      console.error('Error:', error.message);
-    });
-  
-
-  
-  
 app.use(express.static(publicPath))
 
-
-
-
-
 // hbs.registerPartials(partialPath)
-
 
 app.get('/signup', (req, res) => {
     res.render('signup')
 })
-app.get('/', (req, res) => {
+app.get('/login', (req, res) => {
     res.render('login')
 })
 
-
-
-/* app.get('/home', (req, res) => {
-//     res.render('home')
-// })
-
-app.post('/signup', async (req, res) => {
-    
-    // const data = new LogInCollection({
-    //     name: req.body.name,
-    //     password: req.body.password
-    // })
-    // await data.save()
-
-    const data = {
-        name: req.body.name,
-        password: req.body.password
-    }
-
-    const checking = await LogInCollection.findOne({ name: req.body.name })
-
-   try{
-    if (checking.name === req.body.name && checking.password===req.body.password) {
-        res.send("user details already exists")
-    }
-    else{
-        await LogInCollection.insertMany([data])
-    }
-   }
-   catch{
-    res.send("wrong inputs")
-   }
-
-    res.status(201).render("home", {
-        naming: req.body.name
-    })
+app.get('/createProject', (req, res) => {
+  res.render('createProject')
 })
 
+app.get('/viewProjects', (req, res) => {
+  res.render('viewProjects')
+})
 
-app.post('/login', async (req, res) => {
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-    try {
-        const check = await LogInCollection.findOne({ name: req.body.name })
-
-        if (check.password === req.body.password) {
-            res.status(201).render("home", { naming: `${req.body.password}+${req.body.name}` })
-        }
-
-        else {
-            res.send("incorrect password")
-        }
-
-
-    } 
-    
-    catch (e) {
-
-        res.send("wrong details")
-        
-
-    }
-
-
-})*/
-
-
-
-// This is a temporary storage for demonstration purposes
-const users = [];
-
-// Endpoint for user registration
-app.post('/register', async (req, res) => {
+// Define the route for user signup
+  app.post('/signup', async (req, res) => {
+  const {name, email, phone,  password } = req.body;
+  
   try {
-    const { username, password } = req.body;
-
-    // Check if the username already exists
-    const existingUser = users.find((user) => user.username === username);
+    // Check if the user already exists
+    const existingUser = await SignupData.findOne({ email: email });
     if (existingUser) {
-      return res.status(409).json({ message: 'Username already exists' });
+      return res.status(409).json({ error: 'User already exists' });
     }
-
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10)
+    console.log(hashedPassword)
+    // Create a new user
+    const newUser = new SignupData({
+      email,
+      name,
+      password: hashedPassword,
+    });
 
-    // Save the user in the temporary storage
-    const user = { username, password: hashedPassword };
-    users.push(user);
-
-    res.status(201).json({ message: 'User registered successfully' });
+    // Save the user to the database
+    const savedUser = await newUser.save();
+     // Generate JWT token
+     const token = jwt.sign({ email: savedUser.email }, 'your_secret_key');
+     res.cookie('token', token, { httpOnly: true });
+     // Return the token
+     res.render('home')
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Error registering user', error);
+    res.status(500).json({ error: 'Error occurred' });
   }
-});
-
+  });
 // Endpoint for user login
-app.post('/login', async (req, res) => {
+  app.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
-
-    // Find the user with the provided username
-    const user = users.find((user) => user.username === username);
+    // Find the user by email
+    const user = await SignupData.findOne({ email: req.body.email });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Email not found' });
     }
 
-    // Compare the provided password with the hashed password
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    // Compare the password
+    const passwordMatch = await bcrypt.compare(req.body.password, user.password);
+    console.log(passwordMatch)
     if (!passwordMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Authentication failed' });
     }
 
-    // Generate a JWT token
-    const token = jwt.sign({ username }, 'secret_key', { expiresIn: '1h' });
-
-    res.status(200).json({ token });
+    // Generate JWT token
+    const token = jwt.sign({ email: user.email }, 'your_secret_key');
+    res.cookie('token', token)
+    // Return the token
+    res.render('home')
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    console.log('Error during login:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-});
+  });
 
-// Protected endpoint that requires authentication
-app.get('/protected', authenticateToken, (req, res) => {
-    res.status(200).json({ message: 'Protected endpoint accessed successfully' });
+// Middleware to authenticate the JWT token
+  const authenticateUser = (req, res, next) => {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  
+    try {
+      const decoded = jwt.verify(token, 'your_secret_key');
+      req.user = decoded;
+      next();
+    } catch (error) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  };
+  // Protected endpoint that requires authentication
+  app.get('/protected', authenticateUser, (req, res) => {
+  res.status(200).json({ message: 'Protected endpoint accessed successfully' });
+  });
+
+// Define the route for savinglocation
+  app.post('/save', async (req, res) => {
+  const { area, orientation, inclination, product, latitude, longitude, projectName, powerpeak } = req.body;
+  console.log (area, orientation, inclination, product, latitude, longitude, projectName, powerpeak)
+  // Create a new Location document
+  
+  const newlocation = new Location({
+    area,
+    orientation,
+    inclination,
+    product,
+    latitude,
+    longitude,
+    projectName,
+    powerpeak
+  });
+
+  const product1 = {name: projectName, powerPeak:20, area: area, email: "kskanikashah@gmail.com"}
+  generateReport(latitude, longitude, product1)
+
+  // Save the location to MongoDB
+  try {
+    // Save the location to MongoDB
+    const savedLocation = await newlocation.save();
+    console.log('Location saved to MongoDB:', savedLocation);
+    res.status(201).json(savedLocation); 
+   } catch (error) {
+    console.error('Error saving location to MongoDB:', error);
+    res.sendStatus(500);
+  }
+  });
+  // fetchlocation
+  app.get('/location', async (req, res) => {
+    try {
+      const locations = await Location.find({}, 'latitude longitude');
+      console.log("GETTING DATA")
+      console.log (locations)
+      res.json(locations);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+      res.status(500).json({ error: 'Failed to fetch locations' });
+    }
   });
   
-  // Middleware to authenticate the JWT token
-  function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-  
-    if (!token) {
-      return res.status(401).json({ message: 'Missing token' });
-    }
-  
-    jwt.verify(token, 'secret_key', (error, user) => {
-      if (error) {
-        return res.status(403).json({ message: 'Invalid token' });
-      }
-  
-      req.user = user;
-      next();
-    });
-  }
+// Define a route to retrieve project names
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+app.get('/projects', async (req, res) => {
+  try {
+    const projects = await Location.find({}, 'projectName');
+    res.json(projects);
+  } catch (error) {
+    console.error('Error retrieving projects:', error);
+    res.status(500).json({ error: 'Failed to retrieve projects' });
+  }
 });
 
-// OpenWeatherMap API configuration
-//const apiKey = 'afe7d4236e66ce7c963cc9364da76305';
+//Delete Project
+app.delete('/projects', async (req, res) => {
+  try {
+    const projectName = req.body.projectName;
 
+    await Location.deleteMany({ projectName });
+    res.send('Projects deleted');
+  } catch (error) {
+    console.error('Error deleting projects:', error);
+    res.status(500).send('Error deleting projects');
+  }
+});
+
+
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server started on port 3000');
+  connect()
+});
